@@ -1,0 +1,41 @@
+%{
+#include <stdio.h>
+#include <stdlib.h>
+int comment=0;
+%}
+identifier [a-zA-Z][a-zA-Z0-9]*
+%%
+int|return|float|void|continue|const|goto|break|double|if|else|for|while  {printf("\nKeyword: %s",yytext);}
+#.*  {printf("\nPreprocessor Directive: %s",yytext);}
+"/*"  { printf("\nComment: %s", yytext); }
+{identifier}\( {if(!comment)printf("\nFunction: %s",yytext);}
+{identifier}(\[[0-9]*\])? {if(!comment) printf("\nIdentifer: %s",yytext);}
+= {if(!comment) printf("\nAssignment Operator: %s",yytext);}
+"{" {if(!comment)printf("\nBlock Begins");}
+"}" { if(!comment)printf("\nBlock Ends");}
+(<=|>=|!=|==)  {if(!comment) printf("\nRelational Operator: %s",yytext);}
+(<|>) { if(!comment) printf("\nRelational Operator: %s", yytext); }
+[0-9]+(\.[0-9]+)? {if(!comment) printf("\n Number: %s",yytext);}
+\"([^\\\"]|\\.)*\"  {if(!comment) printf("\n String: %s",yytext);}
+";" {if(!comment) printf("\nSemicolon: %s",yytext);}
+"("   { if(!comment) printf("\nLeft Parenthesis: %s", yytext); }
+
+")"   { if(!comment) printf("\nRight Parenthesis: %s", yytext); }
+
+
+%%
+int main(int argc,char **argv){
+FILE *fp;
+fp=fopen("test.c","r");
+if(!fp){
+printf("File couldn't open");
+exit(0);
+}
+yyin=fp;
+yylex();
+printf("\n");
+return(0);
+}
+int yywrap(){
+return (1);
+}
