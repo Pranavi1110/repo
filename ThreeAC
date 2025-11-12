@@ -1,0 +1,110 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+unordered_map<char,int> precedence = {
+    {'+',1},{'-',1},{'*',2},{'/',2}
+};
+
+bool isOperand(const string &token) {
+    if(token.empty()) return false;
+    if(isalpha(token[0]) || token[0]=='_') return true;
+    if(isdigit(token[0])) return true;
+    return false;
+}
+
+vector<string> tokenize(const string &expr) {
+    vector<string> tokens;
+    string token;
+    for(char c : expr) {
+        if(c==' ') continue;
+        if(isalnum(c) || c=='_') token += c;
+        else {
+            if(!token.empty()) {
+                tokens.push_back(token);
+                token.clear();
+            }
+            tokens.push_back(string(1, c));
+        }
+    }
+    if(!token.empty()) tokens.push_back(token);
+    return tokens;
+}
+
+vector<string> infix_to_postfix(const vector<string> &tokens) {
+    vector<string> output;
+    stack<string> st;
+    for(const string &token : tokens) {
+        if(isOperand(token)) output.push_back(token);
+        else if(token == "(") st.push(token);
+        else if(token == ")") {
+            while(!st.empty() && st.top() != "(") {
+                output.push_back(st.top()); st.pop();
+            }
+            if(!st.empty()) st.pop();
+        } else {
+            while(!st.empty() && st.top() != "(" &&
+                  precedence[st.top()[0]] >= precedence[token[0]]) {
+                output.push_back(st.top()); st.pop();
+            }
+            st.push(token);
+        }
+    }
+    while(!st.empty()) { output.push_back(st.top()); st.pop(); }
+    return output;
+}
+
+void generate_TAC_structures(const vector<string> &postfix) {
+    int temp_count = 1;
+    stack<string> st;
+    vector<tuple<string,string,string,string>> quadruples;
+    vector<tuple<string,string,string>> triples;
+    vector<int> indirect_triples;
+
+    for(const string &token : postfix) {
+        if(isOperand(token)) st.push(token);
+        else {
+            string op2 = st.top(); st.pop();
+            string op1 = st.top(); st.pop();
+            string temp_var = "t" + to_string(temp_count);
+            quadruples.push_back({token, op1, op2, temp_var});
+            auto to_triple_arg = [&](const string &arg) {
+                if(arg[0]=='t') {
+                    int idx = stoi(arg.substr(1)) - 1;
+                    return "(" + to_string(idx) + ")";
+                } else return arg;
+            };
+            triples.push_back({token, to_triple_arg(op1), to_triple_arg(op2)});
+            st.push(temp_var);
+            temp_count++;
+        }
+    }
+
+    for(int i=0;i<triples.size();i++) indirect_triples.push_back(i);
+
+    cout << "Quadruples:\nIndex Op Arg1 Arg2 Result\n";
+    for(int i=0;i<quadruples.size();i++){
+        auto [op,arg1,arg2,res] = quadruples[i];
+        cout << i << " " << op << " " << arg1 << " " << arg2 << " " << res << "\n";
+    }
+
+    cout << "\nTriples:\nIndex Op Arg1 Arg2\n";
+    for(int i=0;i<triples.size();i++){
+        auto [op,arg1,arg2] = triples[i];
+        cout << i << " " << op << " " << arg1 << " " << arg2 << "\n";
+    }
+
+    cout << "\nIndirect Triples (Pointer Table):\nIndex Pointer to Triple Index\n";
+    for(int i=0;i<indirect_triples.size();i++)
+        cout << i << " " << indirect_triples[i] << "\n";
+}
+
+int main() {
+    string expr;
+    cout << "Enter an arithmetic expression: ";
+    getline(cin, expr);
+    cout << "\nExpression: " << expr << "\n\n";
+    vector<string> tokens = tokenize(expr);
+    vector<string> postfix = infix_to_postfix(tokens);
+    generate_TAC_structures(postfix);
+    return 0;
+}
