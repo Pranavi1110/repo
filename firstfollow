@@ -1,0 +1,113 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+map<char, vector<string>> grammar;
+map<char, set<char>> firstSet, followSet;
+set<char> nonTerminals;
+char startSymbol;
+
+set<char> findFirst(char c) {
+    set<char> result;
+    if (!isupper(c)) {
+        result.insert(c);
+        return result;
+    }
+    for (auto prod : grammar[c]) {
+        bool epsilonFound = true;
+        for (int i = 0; i < prod.size() && epsilonFound; i++) {
+            epsilonFound = false;
+            set<char> subFirst = findFirst(prod[i]);
+            for (auto x : subFirst) {
+                if (x == '#')
+                    epsilonFound = true;
+                else
+                    result.insert(x);
+            }
+        }
+        if (epsilonFound)
+            result.insert('#');
+    }
+    return result;
+}
+
+void findFollow(char c) {
+    static set<char> visited;
+    if (visited.count(c)) return;
+    visited.insert(c);
+    if (c == startSymbol)
+        followSet[c].insert('$');
+    for (auto &entry : grammar) {
+        char lhs = entry.first;
+        for (auto &prod : entry.second) {
+            for (int i = 0; i < prod.size(); i++) {
+                if (prod[i] == c) {
+                    if (i + 1 < prod.size()) {
+                        set<char> firstNext = findFirst(prod[i + 1]);
+                        bool hasEps = false;
+                        for (auto f : firstNext) {
+                            if (f == '#')
+                                hasEps = true;
+                            else
+                                followSet[c].insert(f);
+                        }
+                        if (hasEps && lhs != c) {
+                            findFollow(lhs);
+                            for (auto x : followSet[lhs])
+                                followSet[c].insert(x);
+                        }
+                    } else if (lhs != c) {
+                        findFollow(lhs);
+                        for (auto x : followSet[lhs])
+                            followSet[c].insert(x);
+                    }
+                }
+            }
+        }
+    }
+}
+
+int main() {
+    int n;
+    cout << "Enter number of productions: ";
+    cin >> n;
+    cout << "Enter the grammar (use # for epsilon, format: S->iEtSY):\n";
+    for (int i = 0; i < n; i++) {
+        string rule;
+        cin >> rule;
+        char lhs = rule[0];
+        int arrowPos = rule.find("->");
+        if (arrowPos == string::npos) arrowPos = rule.find('=');
+        string rhs = rule.substr(arrowPos + 2);
+        string temp = "";
+        for (char ch : rhs) {
+            if (ch == '|') {
+                grammar[lhs].push_back(temp);
+                temp = "";
+            } else {
+                temp += ch;
+            }
+        }
+        grammar[lhs].push_back(temp);
+        if (i == 0) startSymbol = lhs;
+        nonTerminals.insert(lhs);
+    }
+    for (auto nt : nonTerminals)
+        firstSet[nt] = findFirst(nt);
+    for (auto nt : nonTerminals)
+        findFollow(nt);
+    cout << "\n--- FIRST Sets ---\n";
+    for (auto nt : nonTerminals) {
+        cout << "FIRST(" << nt << ") = { ";
+        for (auto f : firstSet[nt])
+            cout << f << " ";
+        cout << "}\n";
+    }
+    cout << "\n--- FOLLOW Sets ---\n";
+    for (auto nt : nonTerminals) {
+        cout << "FOLLOW(" << nt << ") = { ";
+        for (auto f : followSet[nt])
+            cout << f << " ";
+        cout << "}\n";
+    }
+    return 0;
+}
