@@ -1,0 +1,49 @@
+#include<bits/stdc++.h> 
+using namespace std; 
+string stuffed(string s){ 
+string res=""; 
+res+="DLESTX"; 
+for(int i=0;i<s.size();i++){ 
+if(i+2<s.size()&&s[i]=='D'&&s[i+1]=='L'&&s[i+2]=='E'){ 
+res+="DLEDLE"; 
+i+=2; 
+} 
+else if(i+2<s.size()&&s[i]=='d'&&s[i+1]=='l'&&s[i+2]=='e'){ 
+res+="dledle"; 
+i+=2; 
+} 
+else{ 
+res+=s[i]; 
+} 
+} 
+res+="DLEETX"; 
+return res; 
+} 
+string destuff(string s){ 
+string res=""; 
+int n=s.size(); 
+for(int i=6;i<n-6;i++){ 
+if(i+5<n&&s.substr(i,6)=="DLEDLE"){ 
+res+="DLE"; 
+i+=5; 
+}else if(i+5<n&&s.substr(i,6)=="dledle"){ 
+res+="dle"; 
+i+=5; 
+} 
+else{ 
+res+=s[i]; 
+} 
+} 
+return res; 
+} 
+int main(){ 
+cout << "enter string" << endl; 
+string s; 
+cin >> s; 
+string stuff_str=stuffed(s); 
+cout << "stuffed string" << endl; 
+cout << stuff_str << endl; 
+string de_stuff=destuff(stuff_str); 
+cout << "De Stuffed String:" << endl; 
+cout << de_stuff << endl; 
+} 
