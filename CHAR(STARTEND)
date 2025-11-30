@@ -1,0 +1,109 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+string stuffed(string s) {
+    string res = "";
+    res += "STARTFLAG"; // frame start
+
+    for (int i = 0; i < (int)s.size(); ++i) {
+        // check STARTFLAG first (longest)
+        if (i + 9 <= (int)s.size() && s.substr(i, 9) == "STARTFLAG") {
+            res += "FLAGSTARTFLAG";
+            i += 8; // skip 9 chars total (loop will add 1)
+        }
+        else if (i + 9 <= (int)s.size() && s.substr(i, 9) == "startflag") {
+            res += "flagstartflag";
+            i += 8;
+        }
+
+        // then check ENDFLAG
+        else if (i + 7 <= (int)s.size() && s.substr(i, 7) == "ENDFLAG") {
+            res += "FLAGENDFLAG";
+            i += 6; // skip 7 chars total
+        }
+        else if (i + 7 <= (int)s.size() && s.substr(i, 7) == "endflag") {
+            res += "flagendflag";
+            i += 6;
+        }
+
+        // only now check standalone FLAG (shortest)
+        else if (i + 4 <= (int)s.size() && s.substr(i, 4) == "FLAG") {
+            res += "FLAGFLAG";
+            i += 3; // skip 4 chars total
+        }
+        else if (i + 4 <= (int)s.size() && s.substr(i, 4) == "flag") {
+            res += "flagflag";
+            i += 3;
+        }
+
+        else {
+            res += s[i];
+        }
+    }
+
+    res += "ENDFLAG"; // frame end
+    return res;
+}
+
+string destuff(string s) {
+    string res = "";
+    int n = s.size();
+    // basic validation: must contain outer flags
+    if (n < 9 + 7) return "";
+    if (s.substr(0,9) != "STARTFLAG" || s.substr(n-7) != "ENDFLAG") return "";
+
+    // iterate payload between STARTFLAG and ENDFLAG
+    for (int i = 9; i < n - 7; ++i) {
+        // check FLAGSTARTFLAG -> STARTFLAG
+        if (i + 13 <= n - 7 && s.substr(i, 13) == "FLAGSTARTFLAG") {
+            res += "STARTFLAG";
+            i += 12;
+        }
+        else if (i + 13 <= n - 7 && s.substr(i, 13) == "flagstartflag") {
+            res += "startflag";
+            i += 12;
+        }
+
+        // check FLAGENDFLAG -> ENDFLAG
+        else if (i + 11 <= n - 7 && s.substr(i, 11) == "FLAGENDFLAG") {
+            res += "ENDFLAG";
+            i += 10;
+        }
+        else if (i + 11 <= n - 7 && s.substr(i, 11) == "flagendflag") {
+            res += "endflag";
+            i += 10;
+        }
+
+        // check FLAGFLAG -> FLAG
+        else if (i + 8 <= n - 7 && s.substr(i, 8) == "FLAGFLAG") {
+            res += "FLAG";
+            i += 7;
+        }
+        else if (i + 8 <= n - 7 && s.substr(i, 8) == "flagflag") {
+            res += "flag";
+            i += 7;
+        }
+
+        else {
+            res += s[i];
+        }
+    }
+
+    return res;
+}
+
+int main() {
+    cout << "enter string" << endl;
+    string s;
+    cin >> s;
+
+    string stuff_str = stuffed(s);
+    cout << "stuffed string" << endl;
+    cout << stuff_str << endl;
+
+    string de_stuff = destuff(stuff_str);
+    cout << "De Stuffed String:" << endl;
+    cout << de_stuff << endl;
+
+    return 0;
+}
