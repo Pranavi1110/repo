@@ -1,5 +1,6 @@
 #include <bits/stdc++.h> 
 using namespace std; 
+
 int findMinVertex(vector<int> &dist, vector<bool> &visited, int n) { 
     int minVertex = -1; 
     for (int i = 0; i < n; i++) { 
@@ -8,46 +9,60 @@ int findMinVertex(vector<int> &dist, vector<bool> &visited, int n) {
     } 
     return minVertex; 
 } 
+
+void printPath(vector<int> &parent, int vertex) {
+    if (vertex == -1) return;
+    printPath(parent, parent[vertex]);
+    cout << vertex << " ";
+}
+
 void dijkstra(vector<vector<int>> &graph, int src, int n) { 
     vector<int> dist(n, INT_MAX); 
     vector<bool> visited(n, false); 
+    vector<int> parent(n, -1);       // To store path
+
     dist[src] = 0; 
+    
     for (int i = 0; i < n - 1; i++) { 
         int u = findMinVertex(dist, visited, n); 
         visited[u] = true; 
- 
+
         for (int v = 0; v < n; v++) { 
-            // Check for edge and unvisited vertex 
             if (graph[u][v] != 0 && !visited[v]) { 
                 int newDist = dist[u] + graph[u][v]; 
-                if (newDist < dist[v]) 
-                    dist[v] = newDist; 
-            } 
-        } 
+                if (newDist < dist[v]) {
+                    dist[v] = newDist;
+                    parent[v] = u; // store previous vertex
+                }
+            }
+        }
     } 
-    cout << "\nShortest distances from source vertex " << src << ":\n"; 
+
+    cout << "\nShortest distances & paths from source vertex " << src << ":\n"; 
     for (int i = 0; i < n; i++) { 
         if (dist[i] == INT_MAX) 
-            cout << "Vertex " << i << " : INF\n"; 
-        else 
-            cout << "Vertex " << i << " : " << dist[i] << "\n"; 
-    } 
+            cout << "Vertex " << i << " : INF | Path: No Path\n"; 
+        else {
+            cout << "Vertex " << i << " : " << dist[i] << " | Path: ";
+            printPath(parent, i);
+            cout << "\n";
+        }
+    }
 } 
- 
+
 int main() { 
     int n; 
     cout << "Enter number of vertices: "; 
     cin >> n; 
     vector<vector<int>> graph(n, vector<int>(n)); 
-    cout << "Enter the adjacency matrix (0 if no edge):\n"; 
-    for (int i = 0; i < n; i++) { 
-        for (int j = 0; j < n; j++) { 
-            cin >> graph[i][j]; 
-        } 
-    } 
+    cout << "Enter adjacency matrix (0 if no edge):\n"; 
+    for (int i = 0; i < n; i++) 
+        for (int j = 0; j < n; j++) 
+            cin >> graph[i][j];
+
     int src; 
     cout << "Enter source vertex: "; 
     cin >> src; 
     dijkstra(graph, src, n); 
     return 0; 
-} 
+}
